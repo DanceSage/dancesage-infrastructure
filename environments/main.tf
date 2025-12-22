@@ -28,3 +28,11 @@ module "gpu_nodepool" {
   min_node_count = var.min_gpu_nodes
   max_node_count = var.max_gpu_nodes
 }
+
+module "artifact_registry" {
+  source = "../modules/artifact-registry"
+
+  project_id    = var.project_id
+  region        = var.region
+  repository_id = "dancesage"
+}
