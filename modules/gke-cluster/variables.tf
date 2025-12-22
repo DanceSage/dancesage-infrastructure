@@ -12,15 +12,3 @@ variable "cluster_name" {
   description = "GKE Cluster Name"
   type        = string
 }
-
-variable "min_gpu_nodes" {
-  description = "Minimum GPU nodes"
-  type        = number
-  default     = 0
-}
-
-variable "max_gpu_nodes" {
-  description = "Maximum GPU nodes"
-  type        = number
-  default     = 1
-}
