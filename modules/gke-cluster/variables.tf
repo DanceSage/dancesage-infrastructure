@@ -3,10 +3,9 @@ variable "project_id" {
   type        = string
 }
 
-variable "region" {
-  description = "GCP Region"
+variable "zone" {
+  description = "GCP Zone"
   type        = string
-  default     = "us-central1"
 }
 
 variable "cluster_name" {
@@ -15,7 +14,7 @@ variable "cluster_name" {
 }
 
 variable "min_gpu_nodes" {
-  description = "Minimum GPU nodes (can be 0)"
+  description = "Minimum GPU nodes"
   type        = number
   default     = 0
 }
@@ -23,5 +22,5 @@ variable "min_gpu_nodes" {
 variable "max_gpu_nodes" {
   description = "Maximum GPU nodes"
   type        = number
-  default     = 2
+  default     = 1
 }
