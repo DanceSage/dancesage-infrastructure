@@ -11,6 +11,10 @@ provider "google" {
   project = var.project_id
 }
 
+# =============================================================================
+# GCP Resources (CPU-only GKE for lightweight pose detection)
+# =============================================================================
+
 module "gke_cluster" {
   source = "../modules/gke-cluster"
 
@@ -19,20 +23,16 @@ module "gke_cluster" {
   cluster_name = var.cluster_name
 }
 
-module "gpu_nodepool" {
-  source = "../modules/gpu-nodepool"
-
-  project_id     = var.project_id
-  zone           = var.zone
-  cluster_name   = module.gke_cluster.cluster_name
-  min_node_count = var.min_gpu_nodes
-  max_node_count = var.max_gpu_nodes
-}
-
 module "artifact_registry" {
   source = "../modules/artifact-registry"
 
   project_id    = var.project_id
   region        = var.region
   repository_id = "dancesage"
+}
+
+module "github_actions_sa" {
+  source = "../modules/github-actions-sa"
+
+  project_id = var.project_id
 }

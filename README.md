@@ -1,39 +1,75 @@
 # dancesage-infrastructure
 
-GCP infrastructure for DanceSage - GKE cluster with GPU support for MMPose inference.
+Hybrid cloud infrastructure for DanceSage - GKE for services + RunPod for GPU inference.
+
+## Architecture
+
+```
+┌─────────────────┐
+│   iOS App       │
+│   (Swift)       │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────┐
+│            GKE (GCP)                │
+│  ┌─────────────────────────────┐    │
+│  │      DanceSage API          │    │
+│  │      (CPU workloads)        │────┼──────┐
+│  └─────────────────────────────┘    │      │
+└─────────────────────────────────────┘      │
+                                             ▼
+                              ┌─────────────────────────────┐
+                              │       RunPod (GPU)          │
+                              │  ┌───────────────────────┐  │
+                              │  │   MMPose Endpoint     │  │
+                              │  │   (Serverless GPU)    │  │
+                              │  └───────────────────────┘  │
+                              └─────────────────────────────┘
+```
 
 ## Project Structure
 
 ```
 dancesage-infrastructure/
-├── .github/
-│   └── workflows/
-│       └── terraform.yml           # Plan/Apply on PR
 ├── environments/
-│   ├── main.tf                     # Root module
+│   ├── main.tf                     # Root module (GCP + RunPod)
 │   ├── variables.tf
+│   ├── outputs.tf
 │   └── terraform.tfvars
 ├── modules/
-│   ├── artifact-registry/
-│   │   ├── main.tf                 # Docker image registry
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   ├── gke-cluster/
-│   │   ├── main.tf                 # GKE cluster + CPU pool
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   ├── gpu-nodepool/
-│   │   ├── main.tf                 # GPU nodes (T4)
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   └── networking/
-│       ├── main.tf                 # VPC, subnets
-│       └── variables.tf
+│   ├── artifact-registry/          # Docker image registry (GCP)
+│   ├── gke-cluster/                # GKE cluster + CPU pool
+│   ├── gpu-nodepool/               # GPU nodes (disabled - using RunPod)
+│   ├── github-actions-sa/          # Service account for CI/CD
+│   ├── networking/                 # VPC, subnets
+│   └── runpod-serverless/          # RunPod GPU endpoint
 ├── .gitignore
 └── README.md
 ```
 
-## Usage
+## Prerequisites
+
+1. GCP account with billing enabled
+2. RunPod account (https://runpod.io)
+3. Terraform installed
+
+## Setup
+
+### 1. Get RunPod API Key
+
+1. Go to: https://runpod.io/console/user/settings
+2. Copy your API key
+
+### 2. Create terraform.tfvars
+
+```bash
+cd environments
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your values
+```
+
+### 3. Apply Infrastructure
 
 ```bash
 cd environments
@@ -42,21 +78,40 @@ terraform plan
 terraform apply
 ```
 
-## Pushing Images to Artifact Registry
+## Outputs
 
-After applying, authenticate and push images:
+After applying, you'll get:
+
+| Output | Description |
+|--------|-------------|
+| `gke_cluster_name` | GKE cluster name |
+| `artifact_registry_url` | URL for pushing Docker images |
+| `github_actions_sa_key` | Service account key for CI/CD |
+| `runpod_endpoint_url` | URL to call MMPose inference |
+
+## Calling RunPod Endpoint
 
 ```bash
-# Authenticate Docker with GCP
-gcloud auth configure-docker us-central1-docker.pkg.dev
-
-# Build and push
-docker build -t us-central1-docker.pkg.dev/dancesage/dancesage/mmpose:latest .
-docker push us-central1-docker.pkg.dev/dancesage/dancesage/mmpose:latest
+curl -X POST "https://api.runpod.ai/v2/YOUR_ENDPOINT_ID/runsync" \
+  -H "Authorization: Bearer YOUR_RUNPOD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"input": {"image": "base64_encoded_image"}}'
 ```
 
 ## Connecting to GKE
 
 ```bash
-gcloud container clusters get-credentials dancesage-cluster --zone us-central1-a --project dancesage
+gcloud container clusters get-credentials dancesage-cluster \
+  --zone us-central1-a \
+  --project dancesage
 ```
+
+## Cost Estimates
+
+| Resource | Cost |
+|----------|------|
+| GKE Cluster | ~$70/month (management fee) |
+| CPU Node (e2-medium) | ~$15/month |
+| RunPod GPU (per request) | ~$0.0004/second |
+
+GPU costs only when processing requests. Idle = $0.
