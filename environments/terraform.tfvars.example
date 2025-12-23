@@ -1,0 +1,14 @@
+# GCP Configuration
+project_id    = "dancesage"
+region        = "us-central1"
+zone          = "us-central1-a"
+cluster_name  = "dancesage-cluster"
+
+# GPU nodes (not used - RunPod handles GPU)
+min_gpu_nodes = 0
+max_gpu_nodes = 1
+
+# RunPod Configuration
+# Get your API key from: https://runpod.io/console/user/settings
+runpod_api_key = "your-runpod-api-key-here"
+

@@ -1,23 +1,23 @@
+# =============================================================================
+# GCP Variables
+# =============================================================================
+
 variable "project_id" {
-  type = string
+  description = "GCP Project ID"
+  type        = string
 }
 
 variable "region" {
-  type = string
+  description = "GCP Region"
+  type        = string
 }
 
 variable "zone" {
-  type = string
+  description = "GCP Zone"
+  type        = string
 }
 
 variable "cluster_name" {
-  type = string
-}
-
-variable "min_gpu_nodes" {
-  type = number
-}
-
-variable "max_gpu_nodes" {
-  type = number
+  description = "GKE Cluster Name"
+  type        = string
 }

@@ -2,11 +2,22 @@
 .terraform/
 *.tfstate
 *.tfstate.backup
-
-# Terraform
-.terraform/
-*.tfstate
-*.tfstate.backup
 .terraform.lock.hcl
-terraform.tfvars
 
+# Sensitive files - never commit
+terraform.tfvars
+*.auto.tfvars
+
+# Local overrides
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
